@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Bullet
+  - Enemy
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Player
+  - Enemy
+  - Bullets
+  - Scenari
+  - Items
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: escena
+    uniqueID: 1066972959
+    locked: 0
+  - name: item
+    uniqueID: 1954192137
+    locked: 0
+  - name: player
+    uniqueID: 3989598413
+    locked: 0
+  - name: Bullets
+    uniqueID: 2005931737
+    locked: 0
+  - name: Weapons
+    uniqueID: 1118279995
+    locked: 0

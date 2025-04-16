@@ -1,0 +1,135 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Resources;
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class ArmaDeFuego : MonoBehaviour
+{
+    [SerializeField] private float rotateSpeed;
+    [SerializeField] private float tamañoDelCirculo;
+    [SerializeField] private Transform enemyPosition;
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform bulletSpawnPoint;
+    [SerializeField] private float bulletNumber;
+    [SerializeField] private float anguloDispersion;
+    [SerializeField] private float tiempo;
+    [SerializeField] private float tiempoEperando;
+    [SerializeField] private bool EsperandoTiempo;
+    [SerializeField] private bool disparandoPum;
+    [SerializeField] private Transform targetPosition;
+    //[SerializeField] private AudioSource escopeTazo;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        EsperandoTiempo = false;
+        tiempoEperando = tiempo;
+        disparandoPum = false;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        enemyPosition = GameObject.FindGameObjectWithTag("Enemy").transform;
+        //El arma detecta al enemigo dentro del rango de vision
+        if (Vector2.Distance(transform.position, enemyPosition.position) < tamañoDelCirculo)
+        {
+            //Hago que el arma gire hacia el enemigo
+            Vector3 direction = enemyPosition.position - transform.position;
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            Quaternion rotation = Quaternion.Euler(new Vector3(0, 0, angle));
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotateSpeed * Time.deltaTime);
+            if (enemyPosition.position.x > this.transform.position.x)
+            {
+                //transform.localScale = new Vector3(1, 1, 1);
+                GetComponentInChildren<SpriteRenderer>().flipY = false;
+            }
+            else if (enemyPosition.position.x < this.transform.position.x)
+            {
+                //transform.localScale = new Vector3(-1, 1, 1);
+                GetComponentInChildren<SpriteRenderer>().flipY = true;
+            }
+            //Disparo el arma
+            disparandoPum = true;
+            if (disparandoPum)
+            {
+                if (EsperandoTiempo)
+                {
+                    EnEspera();
+                }
+                else
+                {
+                    Debug.Log("PUM");
+                    DisparoEscopeta();
+                    //escopeTazo.Play();
+                    EsperandoTiempo = true; tiempoEperando = tiempo;
+                    disparandoPum = false;
+                }
+            }
+
+
+        }
+        else
+        {
+            //Si el enemigo no está dentro del rango de vision, el arma no gira
+            transform.rotation = Quaternion.identity;
+        }
+      
+    }
+    private void DisparoEscopeta() 
+    {
+        // Disparar múltiples perdigones
+         
+        // Instanciamos la bala
+        GameObject spawnedBullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+        // Generamos un ángulo de dispersión aleatorio en un cono
+        //Calculamos la direccion  entre el bulletSpawnPoint y el enemigo
+        Vector2 direction = enemyPosition.position - bulletSpawnPoint.position;
+        // Normalizamos la dirección
+        direction.Normalize();
+        spawnedBullet.GetComponent<ScriptBala>().SettDirection(direction);
+        Destroy(spawnedBullet, 7);
+
+        spawnedBullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+        //Modifico la direccion para que la otra bala vaya un poco hacia arriba
+        direction = new Vector3(enemyPosition.position.x, enemyPosition.position.y + 1, 0) - bulletSpawnPoint.position;
+        // Normalizamos la dirección
+        direction.Normalize();
+        spawnedBullet.GetComponent<ScriptBala>().SettDirection(direction);
+        Destroy(spawnedBullet, 7);
+
+        spawnedBullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+        //Modifico la direccion para que la otra bala vaya un poco hacia arriba
+        direction = new Vector3(enemyPosition.position.x, enemyPosition.position.y - 1, 0) - bulletSpawnPoint.position;
+        // Normalizamos la dirección
+        direction.Normalize();
+        spawnedBullet.GetComponent<ScriptBala>().SettDirection(direction);
+        Destroy(spawnedBullet, 7);
+
+
+    }
+    private void EnEspera()
+    {
+        tiempoEperando -= Time.deltaTime;
+        if (tiempoEperando <= 0)
+        {
+            EsperandoTiempo = false;
+        }
+
+    }
+    //Creo un circulo para el rango de vision del arma
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, tamañoDelCirculo);
+        
+        
+
+    }
+    public Transform Direccion()
+    {
+        return enemyPosition;
+
+    }
+}
