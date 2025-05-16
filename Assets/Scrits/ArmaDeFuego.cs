@@ -7,7 +7,7 @@ using UnityEngine;
 public class ArmaDeFuego : MonoBehaviour
 {
     [SerializeField] private float rotateSpeed;
-    [SerializeField] private float tamañoDelCirculo;
+    [SerializeField] private float tamanyoDelCirculo;
     [SerializeField] private Transform enemyPosition;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform bulletSpawnPoint;
@@ -18,6 +18,7 @@ public class ArmaDeFuego : MonoBehaviour
     [SerializeField] private bool EsperandoTiempo;
     [SerializeField] private bool disparandoPum;
     [SerializeField] private Transform targetPosition;
+    private bool tengoEnemigo;
     //[SerializeField] private AudioSource escopeTazo;
 
     // Start is called before the first frame update
@@ -26,14 +27,25 @@ public class ArmaDeFuego : MonoBehaviour
         EsperandoTiempo = false;
         tiempoEperando = tiempo;
         disparandoPum = false;
+ 
     }
 
     // Update is called once per frame
     void Update()
     {
-        enemyPosition = GameObject.FindGameObjectWithTag("Enemy").transform;
+
+        //Si el enemigo sale del rango de vision, lo elimino
+        if (enemyPosition == null)
+        {
+            return;
+        }
+        if (Vector2.Distance(transform.position, enemyPosition.position) > tamanyoDelCirculo)
+        {
+            enemyPosition = null;
+            return;
+        }
         //El arma detecta al enemigo dentro del rango de vision
-        if (Vector2.Distance(transform.position, enemyPosition.position) < tamañoDelCirculo)
+        if (Vector2.Distance(transform.position, enemyPosition.position) < tamanyoDelCirculo)
         {
             //Hago que el arma gire hacia el enemigo
             Vector3 direction = enemyPosition.position - transform.position;
@@ -77,9 +89,20 @@ public class ArmaDeFuego : MonoBehaviour
         }
       
     }
+    private void OnTriggerStay2D(Collider2D posibleEnemigo)
+    {
+        if (enemyPosition == null && posibleEnemigo.gameObject.CompareTag("Enemy"))
+        {
+            //Busco al enemigo
+            enemyPosition = posibleEnemigo.gameObject.transform;  
+        }
+    }
+   
     private void DisparoEscopeta() 
     {
-        // Disparar múltiples perdigones
+        if (GameManager.gameManager.ConsutoBala())
+        {
+             // Disparar múltiples perdigones
          
         // Instanciamos la bala
         GameObject spawnedBullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
@@ -107,10 +130,19 @@ public class ArmaDeFuego : MonoBehaviour
         spawnedBullet.GetComponent<ScriptBala>().SettDirection(direction);
         Destroy(spawnedBullet, 7);
 
+        }
+        else
+        {
+            Debug.Log("No hay balas");
+        }
 
     }
     private void EnEspera()
     {
+        if (GameManager.gameManager.GetNumeroBalas() <= 0)
+        {
+            return;
+        }   
         tiempoEperando -= Time.deltaTime;
         if (tiempoEperando <= 0)
         {
@@ -122,7 +154,7 @@ public class ArmaDeFuego : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, tamañoDelCirculo);
+        Gizmos.DrawWireSphere(transform.position, tamanyoDelCirculo);
         
         
 

@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Bullet
   - Enemy
+  - Spawn
+  - Cofre
+  - SpawnBoss
+  - SliderVida
   layers:
   - Default
   - TransparentFX
@@ -45,6 +49,9 @@ TagManager:
     locked: 0
   - name: escena
     uniqueID: 1066972959
+    locked: 0
+  - name: cofre
+    uniqueID: 1265792909
     locked: 0
   - name: item
     uniqueID: 1954192137
