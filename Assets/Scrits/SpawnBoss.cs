@@ -26,13 +26,30 @@ public class SpawnBoss: MonoBehaviour
         tiempoDeSpawn = tiempoEntreSpawns;
         tiempoMaxEnemigos = tiempoEntreMaxEnemigos;
         bossCreados = new List<GameObject>();
-        playerMain = GameObject.FindGameObjectWithTag("Player").transform;
         actualizarBoss = 0;
+    }
+    void OnEnable()
+    {
+        // Nos suscribimos al evento
+        GameEvents.OnPlayerSpawned += AsignarJugador;
+    }
+
+    void OnDisable()
+    {
+        // Siempre desuscribirse para evitar errores
+        GameEvents.OnPlayerSpawned -= AsignarJugador;
+    }
+
+    private void AsignarJugador(GameObject jugador)
+    {
+        playerMain = jugador.transform;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (playerMain == null) return; // Esperamos a que exista el jugador
         //ºsi el tiempo de spawn es menor al tiempo actual y no estoy esperando spawn
         if (esperandoSpawn)
         {
@@ -47,40 +64,21 @@ public class SpawnBoss: MonoBehaviour
              {
                 
                     Spawn(); 
-                
-                
-                
+                    AumentarMaxEnemigos();
+
+
+
                 tiempoDeSpawn = tiempoEntreSpawns;
             }   
         }
-        if (enemigosMaximos)
-        {
-            tiempoMaxEnemigos -= Time.deltaTime;
-           
-            AumentarMaxEnemigos();
-            
-            tiempoMaxEnemigos = tiempoEntreMaxEnemigos;
-        }
-        if (tiempoMaxEnemigos <= 0)
-        {
-            enemigosMaximos = true;
-        }
-        else
-        {
-            enemigosMaximos = false;
-        }
-
-        {
-            tiempoMaxEnemigos -= Time.deltaTime;
-        }
        
-        if (bossCreados.Count >= maxEnemigos)
-        {
-            esperandoSpawn = false;
-        }
-        else
+        if (bossCreados.Count <= maxEnemigos)
         {
             esperandoSpawn = true;
+        }
+        else
+        {
+            esperandoSpawn = false;
         }
 
 
@@ -111,8 +109,7 @@ public class SpawnBoss: MonoBehaviour
     }
     private void Spawn()
     {
-        if (bossCreados.Count < maxEnemigos)
-        {
+        
             Debug.Log("Enemigos activos: " + bossCreados.Count);
             Debug.Log("Instancio enemigo");
             Vector2 spawnCircle = RandomPointInAnnulus(new Vector2 (playerMain.transform.position.x, playerMain.transform.position.y), radioSpawn, radioNOspawn);
@@ -121,21 +118,15 @@ public class SpawnBoss: MonoBehaviour
             //instancio el enemigo
             GameObject enemigo = Instantiate(prefabEnemigos[enemigoAleatorio], spawnCircle, Quaternion.identity);
             bossCreados.Add(enemigo);
-        }
+        
     }
+
     public void BossMuertoNigro(GameObject bossMuerto)
     {
         //elimina el enemigo de la lista de enemigos creados
         bossCreados.Remove(bossMuerto);
         Destroy(bossMuerto, 0.5f);
         //si el enemigo muere se elimina de la lista de enemigos creados
-
-        Debug.Log("Enemigos activos: " + enemigosActivos);
-    }
-
-    public void BossMuerto()
-    {
-        enemigosActivos--;
         Debug.Log("Enemigos activos: " + enemigosActivos);
     }
     private void OnDrawGizmos()

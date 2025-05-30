@@ -18,6 +18,7 @@ public class ArmaDeFuego : MonoBehaviour
     [SerializeField] private bool EsperandoTiempo;
     [SerializeField] private bool disparandoPum;
     [SerializeField] private Transform targetPosition;
+    [SerializeField] private AudioSource disparoSonido;
     private bool tengoEnemigo;
     //[SerializeField] private AudioSource escopeTazo;
 
@@ -73,7 +74,13 @@ public class ArmaDeFuego : MonoBehaviour
                 else
                 {
                     Debug.Log("PUM");
+                    //Reproduzco el sonido del disparo
+                    if (disparoSonido != null)
+                    {
+                        disparoSonido.Play();
+                    }
                     DisparoEscopeta();
+                  
                     //escopeTazo.Play();
                     EsperandoTiempo = true; tiempoEperando = tiempo;
                     disparandoPum = false;
@@ -133,10 +140,12 @@ public class ArmaDeFuego : MonoBehaviour
         }
         else
         {
+            disparoSonido.Stop();
             Debug.Log("No hay balas");
         }
 
     }
+   
     private void EnEspera()
     {
         if (GameManager.gameManager.GetNumeroBalas() <= 0)

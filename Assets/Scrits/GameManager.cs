@@ -8,18 +8,23 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public static GameManager gameManager;
+
+    [Header("UI")]
     [SerializeField] private TMP_Text contadorMuertes;
-    [SerializeField] private int bajasEnemigas;
-    [SerializeField] private float segundos;
-    [SerializeField] private float minutos;
     [SerializeField] private TMP_Text relojTiempo;
-    [SerializeField] List<GameObject> balasUI = new() ;
-    private int numeroBalas;
+    [SerializeField] private List<GameObject> balasUI = new();
     [SerializeField] private Slider sliderVida;
     [SerializeField] private Slider sliderBoss;
     [SerializeField] private Animator animatorBlood;
+
+    [Header("Estado")]
+    [SerializeField] private int bajasEnemigas;
+    [SerializeField] private float segundos;
+    [SerializeField] private float minutos;
+    private int numeroBalas;
+
     private GameObject playerAsignado;
-    // Start is called before the first frame update
+
     private void Awake()
     {
         if (gameManager == null)
@@ -31,50 +36,55 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    void Start()
+
+    private void Start()
     {
-        //asigno el player
-        if(playerAsignado == null)
-        {
-            playerAsignado = GameObject.FindGameObjectWithTag("Player");
-        }
-        animatorBlood.GetComponent<Animator>();
-        sliderVida =playerAsignado.GetComponent<PlayerScript>().GetBarraVida();
-        sliderBoss.maxValue = GameObject.FindGameObjectWithTag("SpawnBoss").GetComponent<SpawnBoss>().GetTiempoEntreSpawn();
-        sliderBoss.value = GameObject.FindGameObjectWithTag("SpawnBoss").GetComponent<SpawnBoss>().GetTiempoDeSpawn();
-        sliderVida.maxValue = playerAsignado.GetComponent<PlayerScript>().GetVidaPlayer();
-        sliderVida.value = sliderVida.maxValue;
-        numeroBalas = playerAsignado.GetComponent<PlayerScript>().GetCargadorArma();
-        if (numeroBalas > balasUI.Count)
-        {
-            numeroBalas = balasUI.Count;
-        }
-        ActivarBalas(numeroBalas);  
+        StartCoroutine(WaitForPlayerAndInitialize());
+        ScoreManager.Instance.ReiniciarPuntos();
+        ScoreManager.Instance.EmpezarCronometro();
     }
 
-    // Update is called once per frame
-    void Update()
+    private IEnumerator WaitForPlayerAndInitialize()
     {
-        TimepoCronometro();
+        // Espera hasta que se haya instanciado el jugador
+        while (GameObject.FindGameObjectWithTag("Player") == null)
+        {
+            yield return null;
+        }
+
+        playerAsignado = GameObject.FindGameObjectWithTag("Player");
+
+        var playerScript = playerAsignado.GetComponent<PlayerScript>();
+        if (playerScript == null)
+        {
+            Debug.LogError("PlayerScript no encontrado en el jugador instanciado.");
+            yield break;
+        }
+
+        sliderVida = playerScript.GetBarraVida();
+        sliderVida.maxValue = playerScript.GetVidaPlayer();
+        sliderVida.value = sliderVida.maxValue;
+
+        // SpawnBoss puede que no exista al inicio, esperamos un frame si es necesario
+        yield return null;
+        var spawnBoss = GameObject.FindGameObjectWithTag("SpawnBoss")?.GetComponent<SpawnBoss>();
+        if (spawnBoss != null)
+        {
+            sliderBoss.maxValue = spawnBoss.GetTiempoEntreSpawn();
+            sliderBoss.value = spawnBoss.GetTiempoDeSpawn();
+        }
+
+        numeroBalas = Mathf.Min(playerScript.GetCargadorArma(), balasUI.Count);
+        ActivarBalas(numeroBalas);
     }
-    public void CambiarTiempoBoss(float tiempoNecro)
+
+    private void Update()
     {
-        sliderBoss.value = tiempoNecro;
+        ActualizarReloj();
     }
-    public void CambiarVida(float vida)
+
+    private void ActualizarReloj()
     {
-        sliderVida.value = vida;
-        //si el jugador recibe daño, se activa el animator de sangre
-        animatorBlood.SetTrigger("DañoJugador");
-    }
-    public void CambiarVidaMaxima(float vidaMaxima)
-    {
-        sliderVida.maxValue = vidaMaxima;
-    }
-    //Hago un reloj que cuenta el tiempo
-    public void TimepoCronometro()
-    {
-        //Contador de tiempo
         segundos += Time.deltaTime;
         if (segundos >= 60)
         {
@@ -83,24 +93,23 @@ public class GameManager : MonoBehaviour
         }
         relojTiempo.text = minutos.ToString("00") + ":" + Mathf.FloorToInt(segundos).ToString("00");
     }
+
+    public void CambiarTiempoBoss(float tiempoNecro) => sliderBoss.value = tiempoNecro;
+
+    public void CambiarVida(float vida)
+    {
+        sliderVida.value = vida;
+        animatorBlood.SetTrigger("DañoJugador");
+    }
+
+    public void CambiarVidaMaxima(float vidaMaxima) => sliderVida.maxValue = vidaMaxima;
+
     public void AumentarContadorMuertes()
     {
         bajasEnemigas++;
-        //punto.Play();
         contadorMuertes.text = bajasEnemigas.ToString();
     }
-    public void RecorreListaBalasUI()
-    {
-        for (int i = 0; i < balasUI.Count; i++)
-        {
-            if (balasUI[i].activeSelf == false)
-            {
-                balasUI[i].SetActive(true);
-                break;
-            }
-        }
 
-    }
     public void ActivarBalas(int balasActivas)
     {
         for (int i = 0; i < balasActivas; i++)
@@ -108,51 +117,56 @@ public class GameManager : MonoBehaviour
             balasUI[i].SetActive(true);
         }
     }
+
+    public void RecorreListaBalasUI()
+    {
+        foreach (var bala in balasUI)
+        {
+            if (!bala.activeSelf)
+            {
+                bala.SetActive(true);
+                break;
+            }
+        }
+    }
+
     public bool ConsutoBala()
     {
         for (int i = 0; i < numeroBalas; i++)
         {
-            if (balasUI[i].GetComponent<BalaUI>().EstaActiva())
+            var balaUI = balasUI[i].GetComponent<BalaUI>();
+            if (balaUI.EstaActiva())
             {
-                balasUI[i].GetComponent<BalaUI>().Disparar();
+                balaUI.Disparar();
                 return true;
             }
         }
         return false;
     }
+
     public void RecargarBalas()
     {
-        
-        for (int i = numeroBalas -1; i >= 0; i--)
+        for (int i = numeroBalas - 1; i >= 0; i--)
         {
-            if (!balasUI[i].GetComponent<BalaUI>().EstaActiva())
+            var balaUI = balasUI[i].GetComponent<BalaUI>();
+            if (!balaUI.EstaActiva())
             {
-                balasUI[i].GetComponent<BalaUI>().Recargar();
-                //Salgo del bucle
+                balaUI.Recargar();
                 return;
             }
-            
         }
     }
+
     public void RecargarTodasLasBalas()
     {
-        //Recargo todas las balas de numeroBalas
         for (int i = 0; i < numeroBalas; i++)
         {
             balasUI[i].GetComponent<BalaUI>().Recargar();
         }
     }
-    //Getter minutos y segundos
-    public float GetMinutos()
-    {
-        return minutos;
-    }
-    public float GetSegundos()
-    {
-        return segundos;
-    }
-    public int GetNumeroBalas()
-    {
-        return numeroBalas;
-    }
+
+
+    public float GetMinutos() => minutos;
+    public float GetSegundos() => segundos;
+    public int GetNumeroBalas() => numeroBalas;
 }

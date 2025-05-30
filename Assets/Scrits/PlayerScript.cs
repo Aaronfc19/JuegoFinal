@@ -1,3 +1,4 @@
+using Goldmetal.UndeadSurvivor;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +17,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private bool playerMuerto;
     [SerializeField] private float vidaMaxima;
     [SerializeField] private Slider sliderPlayer;
-
+    public GuardarNombreJugadorUI guardarNombreJugadorUI;
     // Start is called before the first frame update
     void Start()
     {
@@ -24,7 +25,8 @@ public class PlayerScript : MonoBehaviour
         animator = GetComponent<Animator>();
         cameraScene = Camera.main;
         vidaActual = vidaMaxima;
-
+        guardarNombreJugadorUI = FindObjectOfType<GuardarNombreJugadorUI>();
+        
     }
 
 
@@ -68,6 +70,7 @@ public class PlayerScript : MonoBehaviour
         }
         if (vidaActual <= 0 && !playerMuerto)
         {
+            guardarNombreJugadorUI.MostrarPanelFinal();
             //desactivo el animator de sangre
             animator.SetTrigger("Dead");
             Muerto();
@@ -85,9 +88,30 @@ public class PlayerScript : MonoBehaviour
         {
             child.gameObject.SetActive(false);
         }
-        
+        //desactivo el rigidbody del jugador y el collider
+        GetComponent<Rigidbody2D>().simulated = false;
+        GetComponent<Collider2D>().enabled = false;
         //Pongo la velocidad del jugador a 0
         speed = 0;
+
+    }
+    public void AumentarVelocidad(float cantidad)
+    {
+        speed += cantidad;
+    }
+
+    public void Curar(float cantidad)
+    {
+        vidaActual = Mathf.Min(vidaActual + cantidad, vidaMaxima);
+        GameManager.gameManager.CambiarVida(vidaActual);
+    }
+
+    public void AumentarVidaMaxima(float cantidad)
+    {
+        vidaMaxima += cantidad;
+        vidaActual = vidaMaxima;
+        GameManager.gameManager.CambiarVida(vidaActual);
+        GameManager.gameManager.CambiarVidaMaxima(vidaMaxima);
     }
     //Hago un get para el numero de balas
     public int GetCargadorArma()

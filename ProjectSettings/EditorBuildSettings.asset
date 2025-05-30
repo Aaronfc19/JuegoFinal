@@ -4,5 +4,26 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Inicio.unity
+    guid: f8d162915edeca542bd29724d85edc46
+  - enabled: 1
+    path: Assets/Scenes/Opciones.unity
+    guid: f5041635071907c4587c308c5bf87ae7
+  - enabled: 1
+    path: Assets/Scenes/Comojugar.unity
+    guid: 9982275cf15b1d349a2543689c2a5ba9
+  - enabled: 1
+    path: Assets/Scenes/SeleccionPersonaje.unity
+    guid: d28b80cfebd397c42b6a1f0cb0af17cc
+  - enabled: 1
+    path: Assets/Scenes/Juego.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: "Assets/Scenes/Puntuac\xEDones.unity"
+    guid: 0f8dbf4ff086cd54b9b4f661f1c2f51a
+  - enabled: 1
+    path: Assets/Scenes/Creditos.unity
+    guid: e600f8371ac1230478b28f94f3df6973
   m_configObjects: {}

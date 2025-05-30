@@ -16,19 +16,36 @@ public class SpawnCofres : MonoBehaviour
     void Start()
     {
         tiempoCofre = tiempoMaxCofre;
-        playerMain = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+    void OnEnable()
+    {
+        // Nos suscribimos al evento
+        GameEvents.OnPlayerSpawned += AsignarJugador;
     }
 
+    void OnDisable()
+    {
+        // Siempre desuscribirse para evitar errores
+        GameEvents.OnPlayerSpawned -= AsignarJugador;
+    }
+
+    private void AsignarJugador(GameObject jugador)
+    {
+        playerMain = jugador.transform;
+        tiempoCofre = tiempoMaxCofre; // Reiniciamos tiempo una vez que el jugador existe
+    }
     // Update is called once per frame
     void Update()
     {
+        if (playerMain == null) return; // Esperamos a que exista el jugador
+
         tiempoCofre -= Time.deltaTime;
+
         if (tiempoCofre <= 0)
         {
             spawnCofre = true;
             SpawnDelCofre();
         }
-        
     }
     public Vector2 RandomPointInAnnulus(Vector2 origin, float minRadius, float maxRadius)
     {

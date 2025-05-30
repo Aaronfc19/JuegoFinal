@@ -12,6 +12,12 @@ public class NecromancerBoss : MonoBehaviour
     [SerializeField] private float tiempoKnockUP;
     [SerializeField] private float fuerzaDeEmpuje;
     [SerializeField] private GameObject[] invocacionesNigromante;
+    [SerializeField] private int puntos;
+    //Para las particulas de muerte de los enemigos
+    [SerializeField] GameObject boom;
+    [SerializeField] AudioSource audioSourceEnemigos;
+    [SerializeField] private List<AudioClip> audiosEnemigos;
+    [SerializeField] private ParticleSystem particulasDead;
     private SpawnNecromancer spawnBoss;
     private bool knokeadoSTOP;
     private bool muertoEnemy;
@@ -48,21 +54,51 @@ public class NecromancerBoss : MonoBehaviour
             GetComponent<SpawnNecromancer>().spawnEnemigos = false;
         }
     }
-    public void RecibirDanyoNecro(Vector2 empujeBala)
+    public void RecibirDanyoNecro(Vector2 empujeBala, float danoRecibido)
     {
-        //Recibe daño del jugador
         vidaEnemigo -= danoRecibido;
         if (vidaEnemigo <= 0 && !muertoEnemy)
         {
+            FindAnyObjectByType<SpawnBoss>().BossMuertoNigro(this.gameObject);
+            ScoreManager.Instance.AgregarPuntos(puntos);
+            //Instancio las particulas de muerte
+            GameObject pera = Instantiate(boom, transform.position, Quaternion.identity);
+            pera.GetComponent<AudioSource>().clip = audiosEnemigos[2]; // Asigna el clip de audio
+            pera.GetComponent<AudioSource>().Play();
+            Destroy(pera, 1f); // Destruye el objeto de sonido después de 1 segundo
+            Instantiate(particulasDead, transform.position, Quaternion.identity);
             muertoEnemy = true;
             MuertoBoss();
         }
-        else if (vidaEnemigo > 0 && !muertoEnemy)
+        else if (!muertoEnemy)
         {
+            audioSourceEnemigos.PlayOneShot(audiosEnemigos[1]);
             animator.SetTrigger("Hit");
             StartCoroutine(EnemigoSeEmpuja(empujeBala));
         }
-     
+    }
+    public void RecibirDanyoNecro( float danoRecibido)
+    {
+        vidaEnemigo -= danoRecibido;
+        if (vidaEnemigo <= 0 && !muertoEnemy)
+        {
+            FindAnyObjectByType<SpawnBoss>().BossMuertoNigro(this.gameObject);
+            ScoreManager.Instance.AgregarPuntos(puntos);
+            //Instancio las particulas de muerte
+            GameObject pera = Instantiate(boom, transform.position, Quaternion.identity);
+            pera.GetComponent<AudioSource>().clip = audiosEnemigos[2]; // Asigna el clip de audio
+            pera.GetComponent<AudioSource>().Play();
+            Destroy(pera, 1f); // Destruye el objeto de sonido después de 1 segundo
+            Instantiate(particulasDead, transform.position, Quaternion.identity);
+            muertoEnemy = true;
+            MuertoBoss();
+        }
+        else if (!muertoEnemy)
+        {
+            audioSourceEnemigos.PlayOneShot(audiosEnemigos[1]);
+            animator.SetTrigger("Hit");
+            
+        }
     }
     public void ScriptSpawnBoss(SpawnNecromancer spawnBoss2)
     {

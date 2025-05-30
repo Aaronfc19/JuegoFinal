@@ -21,12 +21,28 @@ public class SpawnEnemigos : MonoBehaviour
     {
         tiempoDeSpawn = tiempoEntreSpawns;
         tiempoMaxEnemigos = tiempoEntreMaxEnemigos;
-        playerMain = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+    void OnEnable()
+    {
+        // Nos suscribimos al evento
+        GameEvents.OnPlayerSpawned += AsignarJugador;
     }
 
+    void OnDisable()
+    {
+        // Siempre desuscribirse para evitar errores
+        GameEvents.OnPlayerSpawned -= AsignarJugador;
+    }
+
+    private void AsignarJugador(GameObject jugador)
+    {
+        playerMain = jugador.transform;
+        
+    }
     // Update is called once per frame
     void Update()
     {
+        if (playerMain == null) return; // Esperamos a que exista el jugador
         //ºsi el tiempo de spawn es menor al tiempo actual y no estoy esperando spawn
         if (esperandoSpawn)
         {
@@ -34,14 +50,10 @@ public class SpawnEnemigos : MonoBehaviour
             tiempoDeSpawn -= Time.deltaTime;
              if (tiempoDeSpawn <= 0)
              {
-                if (GameManager.gameManager.GetMinutos() <= 1)
-                {
-                    SpawnEnemigos0();
-                }
-                if (GameManager.gameManager.GetMinutos() >= 1)
-                {
-                    Spawn();
-                }
+               
+                
+                Spawn();
+                
                 
                 tiempoDeSpawn = tiempoEntreSpawns;
             }   

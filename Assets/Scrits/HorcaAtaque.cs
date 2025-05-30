@@ -1,94 +1,76 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HorcaAtaque : MonoBehaviour
 {
-    [SerializeField] private Transform enemyPosition;
-    [SerializeField] private float tamanyoDelCirculo;
-    [SerializeField] private float rotateSpeed;
+    [SerializeField] private float rangoDeteccion = 5f;
+    [SerializeField] private float velocidadRotacion = 100f;
     [SerializeField] private Animator animator;
-    // Start is called before the first frame update
-    void Start()
-    {
+    [SerializeField] private float dano = 2f;
+    [SerializeField] private LayerMask capaEnemigos;
+    [SerializeField] private AudioSource horcaAtaque;
+    private Transform enemigoActual;
 
-    }
-
-    // Update is called once per frame
     void Update()
     {
+        BuscarEnemigo();
 
-        //Si el enemigo sale del rango de vision, lo elimino
-        if (enemyPosition == null)
+        if (enemigoActual != null)
         {
-            return;
-        }
-        if (Vector2.Distance(transform.position, enemyPosition.position) > tamanyoDelCirculo)
-        {
-            enemyPosition = null;
-            return;
-        }
-        //El arma detecta al enemigo dentro del rango de vision
-        if (Vector2.Distance(transform.position, enemyPosition.position) < tamanyoDelCirculo)
-        {
-            //Hago que el arma gire hacia el enemigo
-            Vector3 direction = enemyPosition.position - transform.position;
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            Quaternion rotation = Quaternion.Euler(new Vector3(0, 0, angle));
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotateSpeed * Time.deltaTime);
-            if (enemyPosition.position.x > this.transform.position.x)
-            {
-                //transform.localScale = new Vector3(1, 1, 1);
-                GetComponentInChildren<SpriteRenderer>().flipY = false;
-            }
-            else if (enemyPosition.position.x < this.transform.position.x)
-            {
-                //transform.localScale = new Vector3(-1, 1, 1);
-                GetComponentInChildren<SpriteRenderer>().flipY = true;
-            }
-        }
-        else
-        {
-            //Si el enemigo no está dentro del rango de vision, el arma no gira
-            transform.rotation = Quaternion.identity;
-        }
+            Vector2 direccion = enemigoActual.position - transform.position;
+            float angulo = Mathf.Atan2(direccion.y, direccion.x) * Mathf.Rad2Deg;
+            Quaternion rotacionObjetivo = Quaternion.Euler(0, 0, angulo);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotacionObjetivo, velocidadRotacion * Time.deltaTime);
 
+            var spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            spriteRenderer.flipY = (enemigoActual.position.x < transform.position.x);
+        }
+       
     }
 
-    private void OnTriggerStay2D(Collider2D posibleEnemigo)
+    private void BuscarEnemigo()
     {
-        if (enemyPosition == null && posibleEnemigo.gameObject.CompareTag("Enemy"))
+        Collider2D[] detectados = Physics2D.OverlapCircleAll(transform.position, rangoDeteccion, capaEnemigos);
+        float distanciaMasCercana = Mathf.Infinity;
+        Transform objetivo = null;
+
+        foreach (Collider2D enemigo in detectados)
         {
-            //Busco al enemigo
-            enemyPosition = posibleEnemigo.gameObject.transform;
+            float distancia = Vector2.Distance(transform.position, enemigo.transform.position);
+            if (distancia < distanciaMasCercana)
+            {
+                distanciaMasCercana = distancia;
+                objetivo = enemigo.transform;
+            }
         }
+
+        enemigoActual = objetivo;
     }
-   private void OnCollisionEnter2D (Collision2D collision)
+
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        //Si el enemigo sale del rango de vision, lo elimino
-        if (enemyPosition != null && collision.gameObject.CompareTag("Enemy"))
-        {
-            animator.SetTrigger("Ataca");
-            //muevo al enemigo hacia la direccion contraria a la pala
-            Vector2 direction = (collision.transform.position - transform.position).normalized;
-            if (collision.gameObject.GetComponent<EnemyBasicScript>())
-            {
-                collision.gameObject.GetComponent<EnemyBasicScript>().RecibirDanyo(direction);
-            }
-            if (collision.gameObject.GetComponent<NecromancerBoss>())
-            {
-                collision.gameObject.GetComponent<NecromancerBoss>().RecibirDanyoNecro(direction);
-            }
-            if (collision.gameObject.GetComponent<EnemigoGeneradoPorNigro>())
-            {
-                collision.gameObject.GetComponent<EnemigoGeneradoPorNigro>().RecibirDanyo(direction);
-            }
-        }
+        if (enemigoActual == null || !collision.gameObject.CompareTag("Enemy")) return;
+        horcaAtaque.Play();
+        animator.SetTrigger("Ataca");
+        Vector2 direccion = (collision.transform.position - transform.position).normalized;
+
+        if (collision.gameObject.TryGetComponent(out EnemyBasicScript basic))
+            basic.RecibirDanyo(direccion, dano);
+
+        else if (collision.gameObject.TryGetComponent(out NecromancerBoss boss))
+            boss.RecibirDanyoNecro(direccion, dano);
+
+        else if (collision.gameObject.TryGetComponent(out EnemigoGeneradoPorNigro invocado))
+            invocado.RecibirDanyo(direccion, dano);
     }
-    //Dibujo los circulos
-    private void OnDrawGizmos()
+
+    public void AumentarDaño(float extra)
+    {
+        dano += extra;
+    }
+
+    private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, tamanyoDelCirculo);
+        Gizmos.DrawWireSphere(transform.position, rangoDeteccion);
     }
 }

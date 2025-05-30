@@ -7,48 +7,49 @@ public class ScriptBala : MonoBehaviour
     [SerializeField] private float bulletSpeed;
     [SerializeField] private Vector2 direction;
     [SerializeField] private float fuerzaImpulso;
-    // Start is called before the first frame update
-    void Start()
-    {
+    [SerializeField] private float daño; // ?? nuevo: daño de la bala
 
-    }
     public void SettDirection(Vector2 direction)
     {
-        //Inicializo la dirección de la bala
         this.direction = direction;
+    }
+
+    public void SetDaño(float nuevoDaño) // ?? nuevo: setter público para el daño
+    {
+        daño = nuevoDaño;
     }
 
     private void FixedUpdate()
     {
-        //Muevo la bala en la dirección en la que se dispara
-        if (direction == null||direction == Vector2.zero)
-        {
-            return;
-        }
+        if (direction == Vector2.zero) return;
         transform.position += (Vector3)direction * bulletSpeed * Time.fixedDeltaTime;
     }
+
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        //Si la bala toca al enemigo, se destruye
         if (collision.CompareTag("Enemy"))
         {
-            //muevo al enemigo hacia la direccion contraria a la bala
-           Vector2 direction = collision.transform.position - transform.position;
-            //collision.GetComponent<Rigidbody2D>().AddForce(direction.normalized * fuerzaImpulso, ForceMode2D.Impulse);
-            if (collision.gameObject.GetComponent<EnemyBasicScript>())
+            Vector2 empuje = collision.transform.position - transform.position;
+
+            if (collision.TryGetComponent(out EnemyBasicScript enemy))
             {
-                collision.GetComponent<EnemyBasicScript>().RecibirDanyo(direction);
+                enemy.RecibirDanyo(empuje, daño); // ?? ahora se pasa el daño
             }
-            if (collision.gameObject.GetComponent<NecromancerBoss>())
+            else if (collision.TryGetComponent(out NecromancerBoss necro))
             {
-                collision.GetComponent<NecromancerBoss>().RecibirDanyoNecro(direction);
+                necro.RecibirDanyoNecro(empuje, daño);
             }
-            if (collision.gameObject.GetComponent<EnemigoGeneradoPorNigro>())
+            else if (collision.TryGetComponent(out EnemigoGeneradoPorNigro nigroMinion))
             {
-                collision.GetComponent<EnemigoGeneradoPorNigro>().RecibirDanyo(direction);
+                nigroMinion.RecibirDanyo(empuje, daño);
             }
 
             Destroy(gameObject);
         }
     }
+    public void AumentarDaño(float extra)
+    {
+        daño += extra; // ?? nuevo: método para aumentar el daño de la bala
+    }
 }
+

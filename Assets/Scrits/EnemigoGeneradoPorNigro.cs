@@ -11,9 +11,16 @@ public class EnemigoGeneradoPorNigro : MonoBehaviour
     [SerializeField] private float danoRecibido;
     [SerializeField] private float tiempoKnockUP;
     [SerializeField] private float fuerzaDeEmpuje;
+    [SerializeField] private int puntos;
+    //Para las particulas de muerte de los enemigos
+    [SerializeField] private ParticleSystem particulasDead;
     private SpawnNecromancer spawnNecro;
     private bool knokeadoSTOP;
     private bool muertoEnemy;
+    //lista de audios
+    [SerializeField] GameObject boom;
+    [SerializeField] AudioSource audioSourceEnemigos;
+    [SerializeField] private List<AudioClip> audiosEnemigos;
     // Start is called before the first frame update
     void Start()
     {
@@ -46,17 +53,49 @@ public class EnemigoGeneradoPorNigro : MonoBehaviour
         //Recibe el script del spawn
         spawnNecro = spawnNecro2;
     }
-    public void RecibirDanyo(Vector2 empujeBala)
+    public void RecibirDanyo(Vector2 empujeBala, float danoRecibido)
     {
-        //Recibe daño del jugador
         vidaEnemigo -= danoRecibido;
         if (vidaEnemigo > 0)
         {
+            //Reproduce el audio 1 de la lista de audios
+            audioSourceEnemigos.PlayOneShot(audiosEnemigos[1]);
             animator.SetTrigger("Hit");
             StartCoroutine(EnemigoSeEmpuja(empujeBala));
         }
-        if (vidaEnemigo <= 0 && !muertoEnemy)
+        else if (!muertoEnemy)
         {
+            //Instancio las particulas de muerte
+            //Instancio las particulas de muerte del enemigo
+            GameObject pera = Instantiate(boom, transform.position, Quaternion.identity);
+            pera.GetComponent<AudioSource>().clip = audiosEnemigos[2]; // Asigna el clip de audio
+            pera.GetComponent<AudioSource>().Play();
+            Destroy(pera, 1f); // Destruye el objeto de sonido después de 1 segundo
+            Instantiate(particulasDead, transform.position, Quaternion.identity);
+            ScoreManager.Instance.AgregarPuntos(puntos);
+            muertoEnemy = true;
+            Muerto();
+        }
+    }
+    public void RecibirDanyo( float danoRecibido)
+    {
+        vidaEnemigo -= danoRecibido;
+        if (vidaEnemigo > 0)
+        {
+            audioSourceEnemigos.PlayOneShot(audiosEnemigos[1]);
+            animator.SetTrigger("Hit");
+            
+        }
+        else if (!muertoEnemy)
+        {
+            //Instancio las particulas de muerte
+            //Instancio las particulas de muerte del enemigo
+            GameObject pera = Instantiate(boom, transform.position, Quaternion.identity);
+            pera.GetComponent<AudioSource>().clip = audiosEnemigos[2]; // Asigna el clip de audio
+            pera.GetComponent<AudioSource>().Play();
+            Destroy(pera, 1f); // Destruye el objeto de sonido después de 1 segundo
+            Instantiate(particulasDead, transform.position, Quaternion.identity);
+            ScoreManager.Instance.AgregarPuntos(puntos);
             muertoEnemy = true;
             Muerto();
         }

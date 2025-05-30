@@ -10,6 +10,8 @@ TagManager:
   - Cofre
   - SpawnBoss
   - SliderVida
+  - GameOverEmpty
+  - ArmaCuerpoACuerpo
   layers:
   - Default
   - TransparentFX
@@ -59,9 +61,15 @@ TagManager:
   - name: player
     uniqueID: 3989598413
     locked: 0
+  - name: Particulas
+    uniqueID: 585359507
+    locked: 0
   - name: Bullets
     uniqueID: 2005931737
     locked: 0
   - name: Weapons
     uniqueID: 1118279995
+    locked: 0
+  - name: ui
+    uniqueID: 3458797405
     locked: 0

@@ -7,13 +7,16 @@ public class PalaGiroAtaque : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private float tiempoAtaque;
     [SerializeField] private float circuloEmpuje;
+    [SerializeField] private float dano = 1f; // Daño que inflige la pala
+    [SerializeField] private AudioSource sonidoPala; // Sonido de la pala al atacar
     private float tiempoDeCooldown;
-    // Start is called before the first frame update
+
     void Start()
     {
         animator = GetComponent<Animator>();
         tiempoDeCooldown = tiempoAtaque;
     }
+
     private void EmpujarPala()
     {
         Collider2D[] collisionMelee = Physics2D.OverlapCircleAll(transform.position, circuloEmpuje);
@@ -22,44 +25,51 @@ public class PalaGiroAtaque : MonoBehaviour
         {
             if (collision.CompareTag("Enemy"))
             {
-                //Debug.Log("PUM");
-                //muevo al enemigo hacia la direccion contraria a la pala
                 Vector2 direction = (collision.transform.position - transform.position).normalized;
-                if (collision.gameObject.GetComponent<EnemyBasicScript>())
+
+                if (collision.TryGetComponent(out EnemyBasicScript basic))
                 {
-                    collision.GetComponent<EnemyBasicScript>().RecibirDanyo(direction);
+                    basic.RecibirDanyo(direction, dano);
+                    continue;
                 }
-                if (collision.gameObject.GetComponent<NecromancerBoss>())
+
+                if (collision.TryGetComponent(out NecromancerBoss boss))
                 {
-                    collision.GetComponent<NecromancerBoss>().RecibirDanyoNecro(direction);
+                    boss.RecibirDanyoNecro(direction, dano);
+                    continue;
                 }
-                if (collision.gameObject.GetComponent<EnemigoGeneradoPorNigro>())
+
+                if (collision.TryGetComponent(out EnemigoGeneradoPorNigro invocado))
                 {
-                    collision.GetComponent<EnemigoGeneradoPorNigro>().RecibirDanyo(direction);
+                    invocado.RecibirDanyo(direction, dano);
+                    continue;
                 }
             }
         }
-     
-        
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //Pongo un temporizador que dispare la animacion de ataque automaticamnte cada x segundos
-      
-            tiempoDeCooldown -= Time.deltaTime;
-            if (tiempoDeCooldown <= 0)
-            {
-                tiempoDeCooldown = tiempoAtaque;
-                animator.SetTrigger("Ataca");
-            }
-        
-        
+        tiempoDeCooldown -= Time.deltaTime;
+        if (tiempoDeCooldown <= 0)
+        {
+            tiempoDeCooldown = tiempoAtaque;
+            sonidoPala.Play(); // Reproduce el sonido de la pala al atacar
+            animator.SetTrigger("Ataca");
+        }
+    }
+
+    // Este método lo puede llamar un Animation Event desde la animación de ataque
+    public void EjecutarGolpe()
+    {
+        EmpujarPala();
+    }
+    public void AumentarDaño(float extra)
+    {
+        dano += extra; // ?? nuevo: método para aumentar el daño de la bala
     }
     private void OnDrawGizmosSelected()
     {
-        //Dibujo el circulo de empuje
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, circuloEmpuje);
     }

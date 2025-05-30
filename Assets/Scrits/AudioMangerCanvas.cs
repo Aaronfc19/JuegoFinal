@@ -27,11 +27,11 @@ public class AudioMangerCanvas : MonoBehaviour
         velocidadSlider.onValueChanged.AddListener(SetVelocidad);
 
     }
-    private void SetAudio(float value)
+    public void SetAudio(float value)
     {
         audioManager.SetAudio(value);
     }
-    private void SetVelocidad(float value)
+    public void SetVelocidad(float value)
     {
         audioManager.SetVelocidad(value);
     }

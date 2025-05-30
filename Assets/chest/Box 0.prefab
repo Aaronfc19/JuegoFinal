@@ -166,5 +166,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objetosCofre:
-  - {fileID: 7328514938771515715, guid: 23f532ffed2aaef4f9a71847f4d497a3, type: 3}
+  - {fileID: 171793297525795217, guid: 3c64ae8055d119049aa038800efb9295, type: 3}
+  - {fileID: 4145009138966847885, guid: 66ed9ed5e07eb334d925a8e7678d9e62, type: 3}
+  - {fileID: 171793297525795217, guid: 3c64ae8055d119049aa038800efb9295, type: 3}
+  - {fileID: 1623163072538336899, guid: 584b494ab0b85344e8ff1f9034c5d82b, type: 3}
+  - {fileID: 1526521194632894898, guid: 704471c3f756fe54ebbc6b18191fba47, type: 3}
+  - {fileID: 2679326332517453752, guid: 16932d321be150e458818380b51fce6f, type: 3}
+  - {fileID: 171793297525795217, guid: 3c64ae8055d119049aa038800efb9295, type: 3}
+  - {fileID: 4145009138966847885, guid: 66ed9ed5e07eb334d925a8e7678d9e62, type: 3}
   animator: {fileID: -864190055760731350}
